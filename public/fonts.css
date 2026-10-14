@@ -1,0 +1,12 @@
+/* Fonts are served from this site (Google Fonts is blocked in mainland China).
+   Put the Barlow files listed in public/fonts/README.txt into public/fonts/.
+   If they are missing, the page falls back to standard system fonts automatically. */
+@font-face{font-family:"Barlow";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/Barlow-Regular.ttf") format("truetype")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/Barlow-Medium.ttf") format("truetype")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:600;font-display:swap;src:url("/fonts/Barlow-SemiBold.ttf") format("truetype")}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:700;font-display:swap;src:url("/fonts/Barlow-Bold.ttf") format("truetype")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/BarlowCondensed-Medium.ttf") format("truetype")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:600;font-display:swap;src:url("/fonts/BarlowCondensed-SemiBold.ttf") format("truetype")}
+@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url("/fonts/BarlowCondensed-Bold.ttf") format("truetype")}
+.signed-in{font-size:13px;color:var(--muted)}
+.signed-in a{color:var(--link)}

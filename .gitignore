@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+# Never commit exported company data
+claude-data-export.json
+*-export.json

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import tracker data</title>
+<style>
+  body{font:15px/1.5 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;max-width:640px;margin:40px auto;padding:0 20px;color:#1A222B;background:#E9EDF0}
+  .card{background:#fff;border:1px solid #CBD2D9;border-radius:10px;padding:20px}
+  h1{font-size:22px;margin:0 0 8px}
+  p{color:#5A6573}
+  button{background:#1A222B;color:#fff;border:0;border-radius:6px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5}
+  #out{margin-top:12px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Import tracker data</h1>
+  <p>Use this once, on launch day, to load claude-data-export.json (comments, chat, FA status and the last PO upload from the Claude version). Importing again overwrites items with the same id, so it is safe to repeat.</p>
+  <p><input type="file" id="f" accept=".json"></p>
+  <button id="go" disabled>Import</button>
+  <div id="out"></div>
+  <p><a href="/">Back to the tracker</a></p>
+</div>
+<script src="/admin-import.js"></script>
+</body>
+</html>

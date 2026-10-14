@@ -1,0 +1,38 @@
+# Render Blueprint: creates the database and the web service together.
+# In Render: New > Blueprint > pick this GitHub repo > Apply.
+databases:
+  - name: china-po-db
+    plan: basic-256mb
+    region: singapore
+    databaseName: china_po
+    user: china_po
+
+services:
+  - type: web
+    name: china-po-tracker
+    runtime: node
+    region: singapore
+    plan: starter
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: china-po-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: BASE_URL
+        sync: false
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_SECRET
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
