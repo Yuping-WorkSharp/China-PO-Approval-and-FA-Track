@@ -24,10 +24,17 @@ const env = (k, fallback) => {
   return v;
 };
 const PORT = process.env.PORT || 3000;
-const BASE_URL = env("BASE_URL").replace(/\/+$/, "");
-const TENANT_ID = env("AZURE_TENANT_ID");
-const CLIENT_ID = env("AZURE_CLIENT_ID");
-const CLIENT_SECRET = env("AZURE_CLIENT_SECRET");
+function originOf(u) { try { const x = new URL(String(u || "").trim()); return /^https?:$/.test(x.protocol) ? x.origin : null; } catch (e) { return null; } }
+/* BASE_URL is the address people use. If it is missing or not a web address yet,
+   fall back to the address Render gives the service, so the site still starts. */
+const BASE_URL = originOf(process.env.BASE_URL) || originOf(process.env.RENDER_EXTERNAL_URL) || ("http://localhost:" + PORT);
+if (!originOf(process.env.BASE_URL)) console.warn("BASE_URL is missing or not a web address. Using " + BASE_URL + " for now.");
+const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const TENANT_ID = String(process.env.AZURE_TENANT_ID || "").trim();
+const CLIENT_ID = String(process.env.AZURE_CLIENT_ID || "").trim();
+const CLIENT_SECRET = String(process.env.AZURE_CLIENT_SECRET || "").trim();
+const AUTH_READY = GUID_RE.test(TENANT_ID) && GUID_RE.test(CLIENT_ID) && CLIENT_SECRET.length > 10;
+if (!AUTH_READY) console.warn("Microsoft sign-in is not set up yet (AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET). The site will show a setup message until they are filled in.");
 const SESSION_SECRET = env("SESSION_SECRET");
 const DATABASE_URL = env("DATABASE_URL");
 const ADMIN_EMAILS = env("ADMIN_EMAILS", "").toLowerCase().split(",").map(s => s.trim()).filter(Boolean);
@@ -86,9 +93,14 @@ function broadcast(evt) {
 setInterval(() => { for (const res of clients) { try { res.write(": ping\n\n"); } catch (e) {} } }, 25000);
 
 /* ---------- auth ---------- */
-const cca = new msal.ConfidentialClientApplication({
+const cca = AUTH_READY ? new msal.ConfidentialClientApplication({
   auth: { clientId: CLIENT_ID, authority: "https://login.microsoftonline.com/" + TENANT_ID, clientSecret: CLIENT_SECRET }
-});
+}) : null;
+const SETUP_PAGE = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>China PO tracker</title>' +
+  '<div style="font:16px/1.5 Segoe UI,Roboto,Arial,sans-serif;max-width:560px;margin:60px auto;padding:0 20px;color:#1A222B">' +
+  '<h1 style="font-size:24px">Almost ready</h1><p>The China PO tracker is running, but Microsoft sign-in is not set up yet.</p>' +
+  '<p>The site owner needs to add AZURE_TENANT_ID, AZURE_CLIENT_ID and AZURE_CLIENT_SECRET in Render, under the service settings, Environment section. IT provides these values.</p>' +
+  '<p>Sign-in address to give IT: <b>' + BASE_URL + '/auth/callback</b></p></div>';
 
 const app = express();
 app.set("trust proxy", 1);
@@ -129,6 +141,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/auth/login", async (req, res, next) => {
+  if (!AUTH_READY) return res.status(503).type("html").send(SETUP_PAGE);
   try {
     const state = crypto.randomBytes(16).toString("hex");
     req.session.authState = state;
@@ -138,6 +151,7 @@ app.get("/auth/login", async (req, res, next) => {
 });
 
 app.get("/auth/callback", async (req, res, next) => {
+  if (!AUTH_READY) return res.status(503).type("html").send(SETUP_PAGE);
   try {
     if (req.query.error) return res.status(400).type("text").send("Sign-in was cancelled or failed: " + String(req.query.error_description || req.query.error).slice(0, 300) + "\n\nGo back to " + BASE_URL + " to try again.");
     if (!req.query.state || req.query.state !== req.session.authState) return res.redirect("/auth/login");
@@ -161,6 +175,7 @@ app.get("/auth/callback", async (req, res, next) => {
 app.get("/auth/logout", (req, res) => {
   req.session.destroy(() => {
     res.clearCookie("cpt.sid");
+    if (!AUTH_READY) return res.redirect("/");
     res.redirect("https://login.microsoftonline.com/" + TENANT_ID + "/oauth2/v2.0/logout?post_logout_redirect_uri=" + encodeURIComponent(BASE_URL));
   });
 });
@@ -372,5 +387,5 @@ app.use((err, req, res, next) => {
 });
 
 migrate()
-  .then(() => app.listen(PORT, () => console.log("China PO tracker listening on " + PORT)))
+  .then(() => app.listen(PORT, () => console.log("China PO tracker listening on " + PORT + " at " + BASE_URL + (AUTH_READY ? " (Microsoft sign-in ready)" : " (waiting for Microsoft sign-in settings)"))))
   .catch(e => { console.error("Database setup failed", e); process.exit(1); });
