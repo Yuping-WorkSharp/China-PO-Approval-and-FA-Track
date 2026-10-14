@@ -2,7 +2,7 @@
 # In Render: New > Blueprint > pick this GitHub repo > Apply.
 databases:
   - name: china-po-db
-    plan: basic-256mb
+    plan: 0.1c-256mb
     region: singapore
     databaseName: china_po
     user: china_po
@@ -12,11 +12,11 @@ services:
     name: china-po-tracker
     runtime: node
     region: singapore
-    plan: starter
+    plan: 0.5c-512mb
     buildCommand: npm install --omit=dev
     startCommand: node server.js
     healthCheckPath: /healthz
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_VERSION
         value: "20"
