@@ -189,7 +189,9 @@ app.use(helmet({
       "frame-ancestors": ["'none'"]
     }
   },
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  // "same-origin" lets browsers tell our own forms apart from other sites when signing in.
+  referrerPolicy: { policy: "same-origin" }
 }));
 
 app.get("/healthz", (req, res) => res.type("text").send("ok"));
@@ -214,10 +216,21 @@ app.use(session({
 /* Block cross-site form posts and API writes: they must come from our own pages. */
 app.use((req, res, next) => {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-  const origin = req.get("origin") || req.get("referer") || "";
-  if (origin && !origin.startsWith(BASE_URL)) return res.status(403).json({ error: "Cross-site request blocked", code: "permission_denied" });
+  const site = req.get("sec-fetch-site");
+  if (site) {
+    if (site === "same-origin" || site === "none") return next();
+    return blocked(req, res);
+  }
+  const origin = req.get("origin");
+  const referer = req.get("referer");
+  if (origin && origin !== "null") return origin === BASE_URL || origin === "https://" + req.get("host") ? next() : blocked(req, res);
+  if (referer) return referer.startsWith(BASE_URL + "/") || referer === BASE_URL ? next() : blocked(req, res);
   next();
 });
+function blocked(req, res) {
+  if (req.path === "/login" || req.path === "/account/password") return res.status(403).type("text").send("This form was sent from another website, so it was blocked. Open " + BASE_URL + " and try again.");
+  return res.status(403).json({ error: "Cross-site request blocked", code: "permission_denied" });
+}
 
 app.get("/auth.css", (req, res) => res.sendFile(path.join(__dirname, "public", "auth.css")));
 
