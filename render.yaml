@@ -28,11 +28,7 @@ services:
         generateValue: true
       - key: BASE_URL
         sync: false
-      - key: AZURE_TENANT_ID
+      - key: ADMIN_USERNAME
         sync: false
-      - key: AZURE_CLIENT_ID
-        sync: false
-      - key: AZURE_CLIENT_SECRET
-        sync: false
-      - key: ADMIN_EMAILS
+      - key: ADMIN_PASSWORD
         sync: false

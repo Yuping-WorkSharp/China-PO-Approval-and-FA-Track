@@ -14,9 +14,10 @@
     if (body !== undefined) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
     var r;
     try { r = await fetch(url, opts); } catch (e) { throw err("unavailable", "Network problem. Check your connection."); }
-    if (r.status === 401) { location.href = "/auth/login"; throw err("unauthenticated", "Please sign in again."); }
+    if (r.status === 401) { location.href = "/login"; throw err("unauthenticated", "Please sign in again."); }
     var j = null;
     try { j = await r.json(); } catch (e) { j = null; }
+    if (r.status === 403 && j && j.code === "password_change_required") { location.href = "/account/password"; throw err("unauthenticated", j.error); }
     if (!r.ok) {
       var code = (j && j.code) || (r.status === 403 ? "permission_denied" : r.status === 413 ? "quota_exceeded" : r.status === 404 ? "not_found" : "internal");
       throw err(code, (j && j.error) || r.statusText);
@@ -137,9 +138,11 @@
       var box = document.createElement("div");
       box.className = "signed-in";
       var name = document.createElement("span"); name.textContent = u.name || u.email || "Signed in";
-      var out = document.createElement("a"); out.href = "/auth/logout"; out.textContent = "Sign out";
-      box.appendChild(name); box.appendChild(document.createTextNode(" \u00b7 ")); box.appendChild(out);
-      if (u.admin) { var adm = document.createElement("a"); adm.href = "/admin/import"; adm.textContent = "Import data"; box.appendChild(document.createTextNode(" \u00b7 ")); box.appendChild(adm); }
+      function link(href, text) { var a = document.createElement("a"); a.href = href; a.textContent = text; box.appendChild(document.createTextNode("  |  ")); box.appendChild(a); }
+      box.appendChild(name);
+      if (u.admin) { link("/admin/users", "Manage people"); link("/admin/import", "Import data"); }
+      link("/account/password", "Change password");
+      link("/logout", "Sign out");
       h.appendChild(box);
     }).catch(function () {});
   });

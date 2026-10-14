@@ -475,7 +475,7 @@ async function init(){
   S.db=db; S.user=user; S.dl=dl;
   if(dl) $("exportBtn").hidden=false;
   if(user){ S.myId = await user.id(); const c = await user.can("data.write"); if(c===false) S.canWrite=false;
-    /* Signed in with Microsoft: pick the matching team name automatically for comments and chat. */
+    /* Signed in: pick the matching team name automatically for comments and chat. */
     try{ if(!S.myName){ const ps=await user.profiles([S.myId]); const first=String((ps[S.myId]||{}).name||"").trim().split(/\s+/)[0].toLowerCase(); const t=TEAM.find(n=>n.toLowerCase()===first);
       if(t){ S.myName=t; try{ localStorage.setItem("cpt-comment-name",t); }catch(e){} document.querySelectorAll("select[data-cname]").forEach(x=>x.value=t); const cn=document.getElementById("chatName"); if(cn) cn.value=t; } } }catch(e){} }
   if(!db){ setSync("Not connected. Changes in this view are not saved."); return; }

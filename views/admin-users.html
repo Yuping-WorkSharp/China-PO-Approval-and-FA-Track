@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manage people | China PO tracker</title>
+<link rel="stylesheet" href="/fonts.css">
+<style>
+:root{--bg:#E9EDF0;--surface:#fff;--sunk:#F3F5F7;--ink:#1A222B;--muted:#5A6573;--line:#CBD2D9;--link:#1F4E79;--ok:#23704A;--ok-bg:#E5F4EC;--late:#B42318;--late-bg:#FDECEA;--soon:#B26A00;--soon-bg:#FFF4DC;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#13181D;--surface:#1C232A;--sunk:#232B33;--ink:#E5EAEF;--muted:#9AA6B3;--line:#33404B;--link:#8DB8E3;--ok:#6FCF97;--ok-bg:#16301F;--late:#FF8A80;--late-bg:#3A1D1B;--soon:#F2B55A;--soon-bg:#382B14;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Barlow","Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:24px 20px 40px}
+h1{font:600 26px "Barlow Condensed","Arial Narrow",sans-serif;margin:0}
+h2{font:600 19px "Barlow Condensed","Arial Narrow",sans-serif;margin:0 0 10px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.f{display:grid;gap:4px}
+.f label{font-size:13px;font-weight:600}
+input[type=text]{font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:200px}
+.btn{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn.small{font-size:13px;padding:3px 8px}
+.btn.warn{color:var(--late)}
+.note{color:var(--muted);font-size:14px;margin:8px 0 0}
+.err{color:var(--late)}
+.box{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th{font:600 14px "Barlow Condensed","Arial Narrow",sans-serif;text-align:left;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);background:var(--sunk)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.chip{display:inline-block;font-size:12.5px;font-weight:600;border-radius:4px;padding:1px 7px}
+.c-ok{background:var(--ok-bg);color:var(--ok)}.c-off{background:var(--late-bg);color:var(--late)}.c-wait{background:var(--soon-bg);color:var(--soon)}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.reveal{background:var(--ok-bg);border-radius:8px;padding:12px 14px;margin-top:12px}
+.reveal code{font-size:18px;font-weight:700;letter-spacing:.04em;background:var(--surface);padding:2px 8px;border-radius:5px}
+a{color:var(--link)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Manage people</h1><a href="/">Back to the tracker</a></div>
+
+  <section class="card">
+    <h2>Add a person</h2>
+    <div class="row">
+      <div class="f"><label for="nName">Name (first name first, e.g. "Christine Lee")</label><input type="text" id="nName" maxlength="80" autocomplete="off"></div>
+      <div class="f"><label for="nUser">Username (lowercase, e.g. "christine")</label><input type="text" id="nUser" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+      <label style="display:flex;gap:6px;align-items:center;font-size:14px;padding-bottom:6px"><input type="checkbox" id="nAdmin"> Admin</label>
+      <button class="btn primary" id="add">Add person</button>
+    </div>
+    <p class="note">The tracker makes a temporary password. Send it to the person privately (Teams chat or in person, not a group email). They must choose their own password the first time they sign in.</p>
+    <p class="note err" id="addErr"></p>
+    <div id="reveal"></div>
+  </section>
+
+  <section class="card">
+    <h2>People</h2>
+    <div class="box"><table><thead><tr><th>Name</th><th>Username</th><th>Status</th><th>Role</th><th>Last sign-in</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <p class="note">Turning someone off signs them out right away. Their past approvals and comments stay. The first name must match the team list (Trusty, Rosie, Wendy, Christine, Yuping, Keria, Damita) for their name to fill in automatically on comments and chat.</p>
+  </section>
+</div>
+<script src="/admin/users.js"></script>
+</body>
+</html>
