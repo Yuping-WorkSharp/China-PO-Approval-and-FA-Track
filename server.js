@@ -25,8 +25,9 @@ if (!originOf(process.env.BASE_URL)) console.warn("BASE_URL is missing or not a 
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!SESSION_SECRET || !DATABASE_URL) { console.error("SESSION_SECRET and DATABASE_URL must be set."); process.exit(1); }
-const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || "").trim().toLowerCase();
-const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || "");
+const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || "").replace(/^[\s"']+|[\s"']+$/g, "").toLowerCase();
+// Trim: values pasted into Render's settings boxes can pick up a stray space or line break.
+const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || "").replace(/^[\s"']+|[\s"']+$/g, "");
 const MIN_PASSWORD = 10;
 
 /* ---------- database ---------- */
@@ -101,8 +102,10 @@ function passwordProblem(pw, username) {
 const USERNAME_RE = /^[a-z0-9._-]{2,40}$/;
 
 async function bootstrapAdmin() {
-  const forceReset = String(process.env.ADMIN_RESET || "").toLowerCase() === "yes";
+  const forceReset = /^\W*yes\W*$/i.test(String(process.env.ADMIN_RESET || ""));
   const { rows } = await pool.query("SELECT count(*)::int AS n FROM users WHERE is_admin AND active AND password_hash IS NOT NULL");
+  const { rows: admins } = await pool.query("SELECT username FROM users WHERE is_admin AND active ORDER BY created_at");
+  console.log("Admin check: existing admin usernames = [" + admins.map(a => a.username).join(", ") + "]; ADMIN_USERNAME = '" + ADMIN_USERNAME + "'; ADMIN_PASSWORD length = " + ADMIN_PASSWORD.length + "; ADMIN_RESET = " + (forceReset ? "yes" : "no"));
   if (rows[0].n > 0 && !forceReset) return;
   if (forceReset) console.warn("ADMIN_RESET=yes: resetting the admin account from ADMIN_USERNAME and ADMIN_PASSWORD. Remove ADMIN_RESET afterwards.");
   if (!USERNAME_RE.test(ADMIN_USERNAME) || ADMIN_PASSWORD.length < MIN_PASSWORD) {
@@ -265,6 +268,7 @@ app.post("/login", form, async (req, res, next) => {
     }
     const ok = await checkPassword(password, u && u.active ? u.password_hash : null);
     if (!u || !u.active || !ok) {
+      console.warn("Sign-in failed for '" + username + "': " + (!u ? "no such username" : !u.active ? "account is turned off" : "wrong password"));
       if (u) {
         const n = (u.failed_count || 0) + 1;
         await pool.query("UPDATE users SET failed_count=$2, locked_until=$3 WHERE id=$1",
